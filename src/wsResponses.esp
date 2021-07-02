@@ -32,8 +32,10 @@ void ICACHE_FLASH_ATTR sendUserList(int page, AsyncWebSocketClient *client) {
 #endif
 					item[theKey] = AccType;
 				}
+				unsigned long validfrom = json["validfrom"];
 				unsigned long validuntil = json["validuntil"];
 				item["username"] = username;
+				item["validfrom"] = validfrom;
 				item["validuntil"] = validuntil;
 			}
 		}
