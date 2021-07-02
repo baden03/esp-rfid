@@ -147,7 +147,6 @@ function listhardware() {
   document.getElementById("doorstatpin").value = config.hardware.doorstatpin;
   document.getElementById("doorbellpin").value = config.hardware.doorbellpin;
   document.getElementById("openlockpin").value = config.hardware.openlockpin;
-  document.getElementById("accessdeniedpin").value = config.hardware.accessdeniedpin;
   if (isOfficialBoard) {
     document.getElementById("readertype").value = 1;
     document.getElementById("wg0pin").value = 5;
@@ -227,7 +226,6 @@ function savehardware() {
   config.hardware.doorstatpin = parseInt(document.getElementById("doorstatpin").value);
   config.hardware.doorbellpin = parseInt(document.getElementById("doorbellpin").value);
   config.hardware.openlockpin = parseInt(document.getElementById("openlockpin").value);
-  config.hardware.accessdeniedpin = parseInt(document.getElementById("accessdeniedpin").value);
   config.hardware["numrelays"] = numRelays; 
 
   for (var i = 2; i<=numRelays; i++)
@@ -380,7 +378,7 @@ function inProgress(callback) {
           document.getElementById("updateprog").className = "progress-bar progress-bar-success";
           document.getElementById("updateprog").innerHTML = "Completed";
         }
-      }, 500);
+      }, 300);
       switch (callback) {
         case "upload":
           $.ajax({
@@ -783,17 +781,19 @@ function restoreSet() {
 
 function restore1by1(i, len, data) {
   var part = 100 / len;
-  var uid, user, acc, valid;
+  var uid, user, acc, validf, valid;
   document.getElementById("dynamic").style.width = part * (i + 1) + "%";
   var datatosend = {};
   uid = data[i].uid;
   user = data[i].username;
   acc = data[i].acctype;
+  validf = data[i].validfrom;
   valid = data[i].validuntil;
   datatosend.command = "userfile";
   datatosend.uid = uid;
   datatosend.user = user;
   datatosend.acctype = acc;
+  datatosend.validfrom = validf;
   datatosend.validuntil = valid;
   websock.send(JSON.stringify(datatosend));
   slot++;
@@ -1134,7 +1134,13 @@ function initLatestLogTable() {
           "breakpoints": "xs sm",
           "parser": function(value) {
             if (value === 1) {
-              return "Granted";
+              return "Staff";
+            } else if (value === 10) {
+              return "Bauhaus";
+            } else if (value === 20) {
+              return "Klassik";
+            } else if (value === 21) {
+              return "Space Age";
             } else if (value === 99) {
               return "Admin";
             } else if (value === 0) {
@@ -1175,7 +1181,13 @@ function initUserTable() {
             "breakpoints": "xs",
             "parser": function(value) {
               if (value === 1) {
-                return "Always";
+                return "Staff";
+              } else if (value === 10) {
+                return "Bauhaus";
+              } else if (value === 20) {
+                return "Klassik";
+              } else if (value === 21) {
+                return "Space Age";
               } else if (value === 99) {
                 return "Admin";
               } else if (value === 0) {
@@ -1191,7 +1203,13 @@ function initUserTable() {
             "visible": false,
             "parser": function(value) {
               if (value === 1) {
-                return "Always";
+                return "Staff";
+              } else if (value === 10) {
+                return "Bauhaus";
+              } else if (value === 20) {
+                return "Klassik";
+              } else if (value === 21) {
+                return "Space Age";
               } else if (value === 99) {
                 return "Admin";
               } else if (value === 0) {
@@ -1233,6 +1251,23 @@ function initUserTable() {
             },
           },
           {
+            "name": "validfrom",
+            "title": "Valid From",
+            "breakpoints": "xs sm",
+            "parser": function(value) {
+              if(!value){
+                value = new Date();
+              }
+              var comp = new Date();
+              value = Math.floor(value + ((comp.getTimezoneOffset() * 60) * -1));
+              var vfepoch = new Date(value * 1000);
+              var formatted = vfepoch.getFullYear() +
+                "-" + twoDigits(vfepoch.getMonth() + 1) +
+                "-" + twoDigits(vfepoch.getDate());
+              return formatted;
+            },
+          },
+          {
             "name": "validuntil",
             "title": "Valid Until",
             "breakpoints": "xs sm",
@@ -1266,7 +1301,10 @@ function initUserTable() {
               if (xnum===2) xval = values.acctype2;
               if (xnum===3) xval = values.acctype3;
               if (xnum===4) xval = values.acctype4;
-              if (xval === "Always")  return 1;
+              if (xval === "Always" || xval === "Staff")  return 1;
+              if (xval === "Bauhaus")  return 10;
+              if (xval === "Klassik")  return 20;
+              if (xval === "Space Age")  return 21;
               if (xval === "Admin")  return 99;
               if (xval === "Disabled") return 0;
             }
@@ -1276,6 +1314,7 @@ function initUserTable() {
             $editor.find("#acctype2").val(giveAccType(2));
             $editor.find("#acctype3").val(giveAccType(3));
             $editor.find("#acctype4").val(giveAccType(4));
+            $editor.find("#validfrom").val(values.validfrom);
             $editor.find("#validuntil").val(values.validuntil);
             $modal.data("row", row);
             $editorTitle.text("Edit User # " + values.username);
@@ -1309,6 +1348,7 @@ function initUserTable() {
           acctype2: parseInt($editor.find("#acctype2").val()),
           acctype3: parseInt($editor.find("#acctype3").val()),
           acctype4: parseInt($editor.find("#acctype4").val()),
+          validfrom: (new Date($editor.find("#validfrom").val()).getTime() / 1000),
           validuntil: (new Date($editor.find("#validuntil").val()).getTime() / 1000)
         };
       if (row instanceof window.FooTable.Row) {
@@ -1327,6 +1367,9 @@ function initUserTable() {
       datatosend.acctype2 = parseInt($editor.find("#acctype2").val());
       datatosend.acctype3 = parseInt($editor.find("#acctype3").val());
       datatosend.acctype4 = parseInt($editor.find("#acctype4").val());
+      var validfrom = $editor.find("#validfrom").val();
+      var vfepoch = (new Date(validfrom).getTime() / 1000);
+      datatosend.validfrom = vfepoch;
       var validuntil = $editor.find("#validuntil").val();
       var vuepoch = (new Date(validuntil).getTime() / 1000);
       datatosend.validuntil = vuepoch;
@@ -1426,7 +1469,6 @@ function socketMessageListener(evt) {
         if (!('wifipin' in config.hardware)) config.hardware.wifipin = 255;
         if (!('doorstatpin' in config.hardware)) config.hardware.doorstatpin = 255;
         if (!('doorbellpin' in config.hardware)) config.hardware.doorbellpin = 255;
-        if (!('accessdeniedpin' in config.hardware)) config.hardware.accessdeniedpin = 255;
         if ('numrelays' in config.hardware) numRelays = config.hardware["numrelays"]; else config.hardware["numrelays"] = numRelays;
         break;
       default:
@@ -1750,8 +1792,8 @@ $(".noimp").on("click", function() {
 window.FooTable.MyFiltering = window.FooTable.Filtering.extend({
   construct: function(instance) {
     this._super(instance);
-    this.acctypes = ["1", "99", "0"];
-    this.acctypesstr = ["Always", "Admin", "Disabled"];
+    this.acctypes = ["1", "10", "20", "21", "99", "0"];
+    this.acctypesstr = ["Staff", "Bauhaus", "Klassik", "Space Age", "Admin", "Disabled"];
     this.def = "Access Type";
     this.$acctype = null;
   },
@@ -1934,9 +1976,11 @@ function getLatestReleaseInfo() {
   });
 }
 
+/*
 $("#update").on("shown.bs.modal", function(e) {
   getLatestReleaseInfo();
 });
+*/
 
 function allowUpload() {
   $("#upbtn").prop("disabled", false);

@@ -269,24 +269,6 @@
             </select>
         </span>
     </div>
-    <div class="row form-group">
-        <label class="col-xs-3">Access denied LED<i style="margin-left: 10px;" class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="Choose &quot;Access denied LED&quot; pin"></i></label>
-        <span class="col-xs-9 col-md-5">
-              <select class="form-control input-sm" id="accessdeniedpin">
-                <option selected="selected" value="255">None</option>
-                <option value="0">GPIO-0</option>
-                <option value="1">GPIO-1</option>
-                <option value="2">GPIO-2</option>
-                <option value="4">GPIO-4</option>
-                <option value="5">GPIO-5</option>
-                <option value="12">GPIO-12</option>
-                <option value="13">GPIO-13</option>
-                <option value="14">GPIO-14</option>
-                <option value="15">GPIO-15</option>
-                <option value="16">GPIO-16</option>
-              </select>
-        </span>
-    </div>
     <hr>
     <div class="row form-group">
         <label class="col-xs-3">Number of relays<i style="margin-left: 10px;" class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="Choose how many relays your board has"></i></label>
@@ -716,8 +698,8 @@
                   <option value="-3">(GMT -3:00) Brazil, Buenos Aires, Georgetown</option>
                   <option value="-2">(GMT -2:00) Mid-Atlantic</option>
                   <option value="-1">(GMT -1:00 hour) Azores, Cape Verde Islands</option>
-                  <option selected="selected" value="0">(GMT) Western Europe Time, London, Lisbon, Casablanca</option>
-                  <option value="1">(GMT +1:00 hour) Brussels, Copenhagen, Madrid, Paris</option>
+                  <option value="0">(GMT) Western European Time, London, Lisbon, Casablanca</option>
+                  <option selected="selected" value="1">(UTC+1:00) Central European Time, Berlin, Madrid, Paris</option>
                   <option value="2">(GMT +2:00) Kaliningrad, South Africa</option>
                   <option value="3">(GMT +3:00) Baghdad, Riyadh, Moscow, St. Petersburg</option>
                   <option value="3.5">(GMT +3:30) Tehran</option>
@@ -892,16 +874,24 @@
                         <label for="acctype" class="col-sm-3 control-label">Access Type</label>
                         <div class="col-sm-9">
                             <select class="form-control" id="acctype" required>
-                                <option selected="selected" value="1">Always</option>
                                 <!--
+                                <option selected="selected" value="1">Always</option>
                                 <option value="2">Within Selected Hours</option>
                                 <option value="3">Within Selected Days</option>
                                 <option value="4">Within Selected Days and Hours</option>
                                 <option value="5">On Weekends</option>
                                 <option value="6">On Weekdays</option>
                                 -->
+                                <optgroup label="Guest">
+                                    <option value="10">Bauhaus</option>
+                                    <option value="20">Klassik</option>
+                                    <option value="21">Space Age</option>
+                                </optgroup>
+                                <optgroup label="MCH"></optgroup>
+                                    <option value="1">Staff</option>
+                                    <option value="99">Admin</option>
+                                </optgroup>
                                 <option value="0">Disabled</option>
-                                <option value="99">Admin</option>
                             </select>
                         </div>
                     </div>
@@ -915,9 +905,15 @@
                     </div>
                     -->
                     <div class="form-group required">
+                        <label for="validfrom" class="col-sm-3 control-label">Valid From</label>
+                        <div class="col-sm-9">
+                            <input type="date" class="form-control" id="validfrom" name="validfrom" placeholder="Valid From" required>
+                        </div>
+                    </div>
+                    <div class="form-group required">
                         <label for="validuntil" class="col-sm-3 control-label">Valid Until</label>
                         <div class="col-sm-9">
-                            <input type="date" class="form-control" id="validuntil" name="validuntil" value="2038-01-01" placeholder="Valid Until" required>
+                            <input type="date" class="form-control" id="validuntil" name="validuntil" placeholder="Valid Until" required>
                         </div>
                     </div>
                 </div>
