@@ -308,10 +308,11 @@ void ICACHE_FLASH_ATTR rfidloop()
 #endif
 			if (AccType == ACCESS_GRANTED)
 			{
+				unsigned long validF = json["validfrom"];
 				unsigned long validL = json["validuntil"];
 				unsigned long nowL = now();
 
-				if (validL > nowL)
+				if (nowL > validF && validL > nowL)
 				{
 					activateRelay[currentRelay] = true;
 					ws.textAll("{\"command\":\"giveAccess\"}");
@@ -324,8 +325,16 @@ void ICACHE_FLASH_ATTR rfidloop()
 					}
 				}
 
-				else
-				{
+				if(nowL < validF){
+#ifdef DEBUG
+						Serial.println(" early");
+#endif
+					if (mqttenabled == 1)
+					{
+						mqtt_publish_access(now(), "true", "Early", username, uid);
+					}
+				}
+				else{
 #ifdef DEBUG
 					Serial.println(" expired");
 #endif
@@ -356,11 +365,6 @@ void ICACHE_FLASH_ATTR rfidloop()
 				if (mqttenabled == 1)
 				{
 					mqtt_publish_access(now(), "true", "Disabled", username, uid);
-				}
-				if (accessdeniedpin != 255)
-				{
-					accessdeniedOffTime = currentMillis + 1000;
-					digitalWrite(accessdeniedpin, HIGH);
 				}
 			}
 			writeLatest(uid, username, AccType);
@@ -415,11 +419,6 @@ void ICACHE_FLASH_ATTR rfidloop()
 		if (mqttenabled == 1)
 		{
 			mqtt_publish_access(now(), "false", "Denied", "Unknown", uid);
-		}
-		if (accessdeniedpin != 255)
-		{
-			accessdeniedOffTime = currentMillis + 1000;
-			digitalWrite(accessdeniedpin, HIGH);
 		}
 	}
 }
